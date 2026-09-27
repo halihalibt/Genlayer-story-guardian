@@ -11,7 +11,7 @@ const POLICY_ID = "clocktower-v1";
 const EXPLORER = "https://explorer-studio.genlayer.com";
 const PENDING_KEY = "story-guardian-pending-v1";
 const HISTORY_KEY = "story-guardian-history-v1";
-const EXAMPLES = ["try-001", "try-002", "try-003"];
+const EXAMPLES = ["sg-muj7qsed-eabc677d", "sg-muj7nfoi-644056c6", "sg-muj7x9ev-852c8d5e", "try-001", "try-002", "try-003"];
 type Language = "zh" | "en";
 type Policy = { policy_id: string; title: string; scenario: string; allow_rule: string; deny_rule: string };
 type Verdict = "APPROVED" | "REJECTED" | "NEEDS_MORE_INFO";
@@ -34,7 +34,7 @@ const words = {
     loading: "正在读取链上关卡…", unavailable: "暂时无法读取链上规则，已暂停提交。", live: "规则已从链上读取", source: "查看合约", retry: "重试",
     connecting: "连接钱包并切换到 Studionet…", signing: "请在钱包中查看并确认交易…", waiting: "交易已提交，正在等待最终确认。请不要重复提交。", reading: "正在读取链上判定…",
     pending: "等待链上判定", check: "查询结果", tx: "查看交易", result: "守门人的判定", approved: "通过", rejected: "未通过", uncertain: "信息不足",
-    reason: "判定理由（链上原文）", yourPlan: "你提交的方案", again: "再试一个办法", records: "已经发生的尝试", recordsHelp: "以下记录直接从合约读取，无需钱包。", refresh: "刷新记录", failRead: "读取失败", missing: "暂无链上结果",
+    reason: "判定理由（链上原文）", yourPlan: "你提交的方案", again: "再试一个办法", records: "已经发生的尝试", recordsHelp: "前三条来自玩家网页提交，后三条来自 Studio 演示；结果均直接从合约读取，无需钱包。", refresh: "刷新记录", failRead: "读取失败", missing: "暂无链上结果",
     raw: "查看链上规则原文", own: "我的提交记录", repo: "合约源代码", finalized: "判定来自合约最终状态",
     notice: "此演示运行在 GenLayer Studionet 测试网。交易可能需要测试网代币，无需购买真实资产；确认前请查看钱包显示的费用。",
     invalid: "请填写 10–1200 个字符的具体方案。", noWallet: "未检测到浏览器钱包。请用安装了 MetaMask 等 EVM 钱包的浏览器打开。", walletFail: "钱包连接或提交失败，请检查钱包与网络。", walletRejected: "你取消了钱包请求；如需提交，请重试并在钱包中确认。", walletBusy: "钱包中已有待处理的请求，请先打开钱包完成或关闭它。", networkFail: "钱包未切换到 GenLayer Studionet（链 ID 61999）。请检查钱包网络后重试。",
@@ -52,7 +52,7 @@ const words = {
     loading: "Reading the onchain chapter…", unavailable: "Could not read the onchain rules. Submissions are paused.", live: "Rules read from chain", source: "View contract", retry: "Retry",
     connecting: "Connecting wallet and switching to Studionet…", signing: "Review and confirm in your wallet…", waiting: "Transaction submitted. Waiting for finalization. Do not resubmit.", reading: "Reading the onchain decision…",
     pending: "Waiting for an onchain decision", check: "Check result", tx: "View transaction", result: "The guardian's decision", approved: "Approved", rejected: "Rejected", uncertain: "Needs more info",
-    reason: "Reason (onchain original)", yourPlan: "Your proposal", again: "Try another idea", records: "Previous attempts", recordsHelp: "These records come directly from the contract. No wallet required.", refresh: "Refresh records", failRead: "Read failed", missing: "No onchain result yet",
+    reason: "Reason (onchain original)", yourPlan: "Your proposal", again: "Try another idea", records: "Previous attempts", recordsHelp: "The first three came from player website submissions; the last three from Studio. All verdicts are read from the contract without a wallet.", refresh: "Refresh records", failRead: "Read failed", missing: "No onchain result yet",
     raw: "Read original rules", own: "My submissions", repo: "Contract source", finalized: "Decision from finalized contract state",
     notice: "This demo runs on GenLayer Studionet. Transactions may need testnet tokens; no real asset purchase is needed. Review your wallet's fee before confirming.",
     invalid: "Describe a concrete solution in 10–1200 characters.", noWallet: "No browser wallet found. Open this page in a browser with an EVM wallet such as MetaMask.", walletFail: "Wallet connection or submission failed. Check your wallet and network.", walletRejected: "You canceled the wallet request. Try again and approve it in your wallet.", walletBusy: "A wallet request is already pending. Open your wallet and complete or dismiss it first.", networkFail: "The wallet did not switch to GenLayer Studionet (chain ID 61999). Check its network and try again.",
