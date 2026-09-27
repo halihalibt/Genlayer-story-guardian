@@ -2,9 +2,7 @@
 
 我做了一个基于 GenLayer 的互动剧情游戏。玩家可以自由写出自己的通关方案，网页通过钱包提交到智能合约，再读取链上判定结果和理由。第一个关卡叫 **The Clocktower Letter（钟楼里的信）**。
 
-**[打开可玩的网页](https://story-guardian-clocktower.zsf197176.chatgpt.site)** · [查看链上合约](https://explorer-studio.genlayer.com/address/0x66772109f272c69498168503A5868b6Ecf8fEd08)
-
-本分支记录新的 Projects 网页作品。[Intelligent Contracts 原提交版本](https://github.com/halihalibt/Genlayer-story-guardian/tree/intelligent-contracts-submission) 已单独固定；仓库默认分支保留审核时的合约、测试和说明。
+**[打开可玩的网页](https://story-guardian-clocktower.zsf197176.chatgpt.site)** · [查看链上合约](https://explorer-studio.genlayer.com/address/0x66772109f272c69498168503A5868b6Ecf8fEd08) · [Project guide and verification cases](docs/PROJECTS_SUBMISSION.md)
 
 ## 从网页体验
 
@@ -87,6 +85,6 @@ npm install
 npm run dev
 ```
 
-`npm run build` 可检查类型并生成静态网页文件。当前公开演示由 ChatGPT Sites 部署，其界面与 `frontend/src/Guardian.tsx` 使用同一套交互代码。
+`npm run build` 可检查类型并生成静态网页文件。公开演示使用与 `frontend/src/Guardian.tsx` 相同的交互代码。
 
 **验证范围：**已读取 `clocktower-v1`、三条 Studio 记录和五条玩家网页记录的最终链上状态；玩家已实际从网页连接钱包、提交方案并看到结果。网页构建已通过。Studionet 是测试环境，网络数据的长期保留不作保证；上述记录是玩法演示，不构成现实争议处理服务。
