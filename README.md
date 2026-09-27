@@ -1,17 +1,6 @@
 # RuleGate：剧情守门人
 
-我做了一个基于 GenLayer 的互动剧情游戏。玩家可以自由写出自己的通关方案，网页通过钱包提交到智能合约，再读取链上判定结果和理由。第一个关卡叫 **The Clocktower Letter（钟楼里的信）**。
-
-**[打开可玩的网页](https://story-guardian-clocktower.zsf197176.chatgpt.site)** · [查看链上合约](https://explorer-studio.genlayer.com/address/0x66772109f272c69498168503A5868b6Ecf8fEd08)
-
-## 从网页体验
-
-1. 无需钱包即可打开网页，查看从链上读取的规则与三条历史判定。
-2. 在文本框写下 10–1200 字符的具体方案。合约规则为英文，建议先用英文描述。
-3. 通过浏览器 EVM 钱包连接 GenLayer Studionet（chain ID 61999），在钱包里检查并确认测试网交易。
-4. 等待最终确认。网页通过 `get_result` 读取链上保存的结论和理由；若等待超时，刷新页面后可继续查询原交易，不要重复提交。
-
-这是测试网演示，不涉及购买真实资产。钱包交易可能需要测试网代币；确认交易前请检查钱包显示的费用。钱包密钥只由你自己的钱包管理，网页不托管密钥。
+我做了一个基于 GenLayer 的剧情规则判定原型。玩家可以自由写出自己的通关方案，合约按关卡规则判断能否过关，并保存方案和判定理由。第一个演示关卡叫 **The Clocktower Letter（钟楼里的信）**。
 
 ## 为什么做这个
 
@@ -54,21 +43,10 @@
 
 三个结果均通过 Studio 的 `get_result` 读回。浏览器交易页中的共识结果 `Accepted` 表示交易被接受；玩家是否过关以 `get_result` 中的 `verdict` 为准。
 
-## 项目结构与运行
+## 代码与运行
 
 - `RuleGate.py`：GenLayer 智能合约。
 - `test_rule_gate.py`：本地逻辑测试，运行 `python3 -m unittest -v test_rule_gate.py`。
-- `frontend/`：React + TypeScript 玩家网页。使用 GenLayerJS 读取链上规则和结果、通过浏览器钱包提交 `adjudicate`，支持中英切换、交易状态和刷新后续查。
 - 在 [GenLayer Studio](https://studio.genlayer.com/) 导入 `RuleGate.py` 即可部署；随后调用 `create_policy` 创建规则，调用 `adjudicate` 提交方案，使用 `get_result` 查看结果。
 
-本地启动网页需要 Node.js 20.19 或更高版本：
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-`npm run build` 可检查类型并生成静态网页文件。当前公开演示由 ChatGPT Sites 部署，其界面与 `frontend/src/Guardian.tsx` 使用同一套交互代码。
-
-**验证范围：**已在真实 Studionet 合约上读取 `clocktower-v1` 与 `try-001`、`try-002`、`try-003` 的最终状态，并检查网页构建与无钱包提示。新的网页钱包签名交易须由体验者本人确认，因此在取得一笔新网页交易的最终结果之前，不把钱包提交路径宣称为已完成端到端实测。Studionet 是测试环境，网络数据的长期保留不作保证。
+当前演示通过 Studio 与合约交互，独立的玩家网页界面尚未接入。
