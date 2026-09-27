@@ -72,6 +72,31 @@ async function getPolicy() {
 async function getDecision(id: string) {
   return decode<Decision>(await readClient.readContract({ address: ADDRESS, functionName: "get_result", args: [id], transactionHashVariant: TransactionHashVariant.LATEST_FINAL }));
 }
+async function getDecisionAfterFinal(id: string) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const decision = await getDecision(id);
+      if (decision) return decision;
+    } catch (cause) {
+      if (attempt === 2) throw cause;
+    }
+    if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 1800));
+  }
+  return null;
+}
+function receiptFailure(receipt: unknown): string | null {
+  if (!receipt || typeof receipt !== "object") return null;
+  const fields = receipt as {
+    statusName?: string; status_name?: string; txExecutionResultName?: string;
+    consensus_data?: { leader_receipt?: Array<{ execution_result?: string }> };
+  };
+  const status = fields.status_name ?? fields.statusName;
+  const execution = fields.txExecutionResultName ?? fields.consensus_data?.leader_receipt?.[0]?.execution_result;
+  if (execution === ExecutionResult.FINISHED_WITH_ERROR || execution === "ERROR" || execution === "FAILED" || status === TransactionStatus.CANCELED) {
+    return [status, execution].filter(Boolean).join(" / ");
+  }
+  return null;
+}
 function errorCode(cause: unknown, depth = 0): number | undefined {
   if (!cause || typeof cause !== "object" || depth > 4) return undefined;
   const details = cause as Record<string, unknown>;
@@ -163,8 +188,18 @@ export default function Guardian() {
   useEffect(() => {
     void refreshPolicy();
     void refreshExamples();
-    setPending(storedPending());
-    try { setHistory(JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]") as Activity[]); } catch { /* optional */ }
+    const previousPending = storedPending();
+    setPending(previousPending);
+    try {
+      const previousHistory = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]") as Activity[];
+      setHistory(previousHistory);
+      const latest = previousHistory[0];
+      if (!previousPending && latest?.id?.startsWith("sg-") && latest.hash) {
+        void getDecision(latest.id).then((found) => {
+          if (found) { setDecision((current) => current ?? found); setProposal((current) => current || found.proposal); }
+        }).catch(() => { /* The record can still be opened manually. */ });
+      }
+    } catch { /* optional */ }
     const provider = window.ethereum;
     if (!provider) return;
     provider.request({ method: "eth_accounts" }).then((accounts) => {
@@ -217,22 +252,37 @@ export default function Guardian() {
     return address;
   }
 
+  async function finishTransaction(item: Pending, receipt: unknown) {
+    setStage("reading");
+    const result = await getDecisionAfterFinal(item.id);
+    if (result) {
+      setDecision(result);
+      setProposal(result.proposal);
+      setPending(null);
+      localStorage.removeItem(PENDING_KEY);
+      return;
+    }
+    const failure = receiptFailure(receipt);
+    if (failure) {
+      setError(`${t.writeFail} ${failure}`);
+      setPending(null);
+      localStorage.removeItem(PENDING_KEY);
+      return;
+    }
+    setError(t.empty);
+  }
+
   async function checkPending(item: Pending) {
     setError(""); setStage("resume");
     try {
       let result = await getDecision(item.id);
       if (!result) {
         const receipt = await readClient.waitForTransactionReceipt({ hash: item.hash as never, status: TransactionStatus.FINALIZED, retries: 60 });
-        if (receipt.txExecutionResultName !== ExecutionResult.FINISHED_WITH_RETURN) {
-          setError(t.writeFail + " " + receipt.statusName + " / " + receipt.txExecutionResultName);
-          setPending(null);
-          localStorage.removeItem(PENDING_KEY);
-          return;
-        }
-        result = await getDecision(item.id);
+        await finishTransaction(item, receipt);
+        return;
       }
-      if (!result) throw new Error(t.empty);
       setDecision(result);
+      setProposal(result.proposal);
       setPending(null);
       localStorage.removeItem(PENDING_KEY);
     } catch (cause) {
@@ -263,18 +313,7 @@ export default function Guardian() {
       setHistory((old) => [{ id, hash }, ...old.filter((entry) => entry.id !== id)].slice(0, 8));
       setStage("waiting");
       const receipt = await client.waitForTransactionReceipt({ hash: hash as never, status: TransactionStatus.FINALIZED, retries: 60 });
-      if (receipt.txExecutionResultName !== ExecutionResult.FINISHED_WITH_RETURN) {
-        setError(t.writeFail + " " + receipt.statusName + " / " + receipt.txExecutionResultName);
-        setPending(null);
-        localStorage.removeItem(PENDING_KEY);
-        return;
-      }
-      setStage("reading");
-      const result = await getDecision(id);
-      if (!result) throw new Error(t.empty);
-      setDecision(result);
-      setPending(null);
-      localStorage.removeItem(PENDING_KEY);
+      await finishTransaction(item, receipt);
     } catch (cause) {
       setError(hash ? t.pendingFail : errorText(cause, t));
     } finally { setStage("idle"); }
