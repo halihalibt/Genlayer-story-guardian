@@ -16,15 +16,15 @@ Story Guardian is a playable, browser-based story game powered by a live GenLaye
 
 ## 核验证据
 
-请在公开网页“已经发生的尝试”查看前三条玩家网页提交记录；它们直接调用合约 `get_result`，不是硬编码的判定。其余两条也可通过网页“我的提交记录”或同一合约的 `get_result` 按 ID 读取。
+请在公开网页“已经发生的尝试”查看前三条玩家网页提交记录；它们直接调用合约 `get_result`，不是硬编码的判定。每张卡片的“查看交易”可核对钱包发起的合约调用。其余两条也可通过同一合约的 `get_result` 按 ID 读取。
 
-| 网页提交 ID | 最终链上判定 | 展示的能力 |
-| --- | --- | --- |
-| `sg-muj7qsed-eabc677d` | `APPROVED` | 明确同时满足交付与禁令。 |
-| `sg-muj7nfoi-644056c6` | `NEEDS_MORE_INFO` | 关键约束未说清时拒绝猜测。 |
-| `sg-muj7x9ev-852c8d5e` | `REJECTED` | 识别“第二天午夜”不符合当晚截止时间。 |
-| `sg-muj7fo48-4dfa2001` | `NEEDS_MORE_INFO` | 缺少关键条件的方案。 |
-| `sg-muj70jsp-79e2debe` | `APPROVED` | 常规解法通过。 |
+| 网页提交 ID | 最终链上判定 | 展示的能力 | 交易证据 |
+| --- | --- | --- | --- |
+| `sg-muj7qsed-eabc677d` | `APPROVED` | 明确同时满足交付与禁令。 | [FINALIZED](https://explorer-studio.genlayer.com/tx/0x273f34edfbdef9ccea0948bd12a55ef9fd0b6598c8652bb5798a553902903565) |
+| `sg-muj7nfoi-644056c6` | `NEEDS_MORE_INFO` | 关键约束未说清时拒绝猜测。 | [FINALIZED](https://explorer-studio.genlayer.com/tx/0x341b94f13d8ac3a9ae5bafba9ebf54938ab302c618486c32eae67e915de61ca5) |
+| `sg-muj7x9ev-852c8d5e` | `REJECTED` | 识别“第二天午夜”不符合当晚截止时间。 | [FINALIZED](https://explorer-studio.genlayer.com/tx/0x70ab3430f94ad58dd7f3b1426375923c26771ef2787a76e80e4e37da1d31edd6) |
+| `sg-muj7fo48-4dfa2001` | `NEEDS_MORE_INFO` | 缺少关键条件的方案。 | [FINALIZED](https://explorer-studio.genlayer.com/tx/0x9b013984cb55ac4bd1d67cc6f96db7e9d7e625bfc72032dd454b7ecdf7ad6fb0) |
+| `sg-muj70jsp-79e2debe` | `APPROVED` | 常规解法通过。 | [FINALIZED](https://explorer-studio.genlayer.com/tx/0x4093e5cdc83ee5558ae571df33252ede7aea9207b97065a3c559ee53ec859559) |
 
 旧的 Studio 合约演示记录是 `try-001`（APPROVED）、`try-002`（REJECTED）、`try-003`（REJECTED），请勿把它们表述为玩家网页交易。网页记录 ID 与 Studio 演示记录明显区分。
 
@@ -43,7 +43,7 @@ Story Guardian is a playable, browser-based story game powered by a live GenLaye
 - [x] 公开网页实际连接钱包并调用 `adjudicate`，五个新提交 ID 的最终判定已从链上读回。
 - [x] 三种判定均有可复现的网页展示案例。
 - [x] 旧的 Intelligent Contracts 提交文件保留在默认分支与独立快照分支。
-- [ ] 可选：从网页“我的提交记录”右侧的外链图标复制一笔新交易的 Explorer URL，作为更直接的交易证据。
+- [x] 五条网页交易的 Explorer URL 已与提交 ID 逐条对应，均为 `FINALIZED` 且合约执行 `SUCCESS`。
 - [ ] 可选：录制 30–60 秒屏幕演示或发布介绍贴；这些是额外展示材料，不是当前网页正常运行所必需。
 
 项目仍是测试网游戏演示；不可将它描述为现实争议处理或已上线主网的产品。

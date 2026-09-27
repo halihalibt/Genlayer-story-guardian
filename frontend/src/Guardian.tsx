@@ -12,6 +12,14 @@ const EXPLORER = "https://explorer-studio.genlayer.com";
 const PENDING_KEY = "story-guardian-pending-v1";
 const HISTORY_KEY = "story-guardian-history-v1";
 const EXAMPLES = ["sg-muj7qsed-eabc677d", "sg-muj7nfoi-644056c6", "sg-muj7x9ev-852c8d5e", "try-001", "try-002", "try-003"];
+const EXAMPLE_TX: Record<string, string> = {
+  "sg-muj7qsed-eabc677d": "0x273f34edfbdef9ccea0948bd12a55ef9fd0b6598c8652bb5798a553902903565",
+  "sg-muj7nfoi-644056c6": "0x341b94f13d8ac3a9ae5bafba9ebf54938ab302c618486c32eae67e915de61ca5",
+  "sg-muj7x9ev-852c8d5e": "0x70ab3430f94ad58dd7f3b1426375923c26771ef2787a76e80e4e37da1d31edd6",
+  "try-001": "0x5a7a7e40cfc53f1f8ab0a9c10e93b710ffdea538442b0639c878e04a888c041b",
+  "try-002": "0x8292f9dcbf59376b256bbbfabdd6b4323c36846ab919ce953c860ec9afb636a0",
+  "try-003": "0xe20ff68fccfa5c07bf8d74bbed7ae0db05ef35664e6716718eea48b580d3476e",
+};
 type Language = "zh" | "en";
 type Policy = { policy_id: string; title: string; scenario: string; allow_rule: string; deny_rule: string };
 type Verdict = "APPROVED" | "REJECTED" | "NEEDS_MORE_INFO";
@@ -349,7 +357,7 @@ export default function Guardian() {
         </section>
       </div>
       <section className="records" aria-labelledby="records-heading"><div className="records-heading"><div><span className="step-label">ONCHAIN ARCHIVE / 03</span><h2 id="records-heading">{t.records}</h2><p>{t.recordsHelp}</p></div><button type="button" disabled={examplesLoading} onClick={() => void refreshExamples()}><RefreshCw size={16} className={examplesLoading ? "spinner" : ""}/>{t.refresh}</button></div>
-        <div className="record-grid">{EXAMPLES.map((id, index) => { const result = examples[id]; return <article className="record" key={id}><div className="record-top"><span>0{index + 1} / {id}</span><span className={result && result !== "error" ? "record-tag " + result.verdict.toLowerCase() : "record-tag"}>{examplesLoading && !result ? "…" : result === "error" ? t.failRead : result ? verdict(result.verdict) : t.missing}</span></div><p>{result && result !== "error" ? result.proposal : examplesLoading ? "…" : t.missing}</p>{result && result !== "error" && <div className="record-reason">{result.reason}</div>}</article>; })}</div>
+        <div className="record-grid">{EXAMPLES.map((id, index) => { const result = examples[id]; return <article className="record" key={id}><div className="record-top"><span>0{index + 1} / {id}</span><span className={result && result !== "error" ? "record-tag " + result.verdict.toLowerCase() : "record-tag"}>{examplesLoading && !result ? "…" : result === "error" ? t.failRead : result ? verdict(result.verdict) : t.missing}</span></div><p>{result && result !== "error" ? result.proposal : examplesLoading ? "…" : t.missing}</p>{result && result !== "error" && <div className="record-reason">{result.reason}</div>}{result && result !== "error" && <a className="record-tx" href={EXPLORER + "/tx/" + EXAMPLE_TX[id]} target="_blank" rel="noopener noreferrer">{t.tx}<ExternalLink size={13}/></a>}</article>; })}</div>
         {history.length > 0 && <details className="my-history"><summary>{t.own} ({history.length})</summary><ul>{history.map((item) => <li key={item.id}><button type="button" onClick={() => { void getDecision(item.id).then((result) => { if (result) { setDecision(result); setProposal(result.proposal); window.scrollTo({ top: 0, behavior: "smooth" }); } else setError(t.missing); }).catch(() => setError(t.failRead)); }}>{item.id}</button>{item.hash && <a href={EXPLORER + "/tx/" + item.hash} target="_blank" rel="noopener noreferrer"><ExternalLink size={14}/></a>}</li>)}</ul></details>}
       </section>
       {policy && <details className="raw-policy"><summary>{t.raw}</summary><div><div><strong>Scenario</strong><p>{policy.scenario}</p></div><div><strong>Allowed condition</strong><p>{policy.allow_rule}</p></div><div><strong>Forbidden condition</strong><p>{policy.deny_rule}</p></div></div></details>}

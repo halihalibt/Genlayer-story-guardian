@@ -62,13 +62,13 @@
 
 玩家通过公开网页连接钱包提交了五个新方案。以下结果已经用 Studionet 上同一个合约的 `get_result` 和 `LATEST_FINAL` 读回；前 3 条还会在网页公开记录区实时读取，访客无需钱包即可核对。
 
-| 提交 ID | 链上判定 | 关键区别 |
-| --- | --- | --- |
-| `sg-muj7qsed-eabc677d` | `APPROVED` | 父亲从窗户进出，逐字抄写副本，原件留下，门始终关闭，午夜前取得副本。 |
-| `sg-muj7nfoi-644056c6` | `NEEDS_MORE_INFO` | 说明了副本与时间，但没有交代原件是否留在塔内、门是否一直关闭。 |
-| `sg-muj7x9ev-852c8d5e` | `REJECTED` | 把交付推到第二天的午夜前，错过规则要求的当晚午夜。 |
-| `sg-muj7fo48-4dfa2001` | `NEEDS_MORE_INFO` | 提到复印和窗口，但没有把关键约束说完整。 |
-| `sg-muj70jsp-79e2debe` | `APPROVED` | 原件留塔内、门关闭，午夜前从窗口递出完整逐字副本。 |
+| 提交 ID | 链上判定 | 关键区别 | 交易 |
+| --- | --- | --- | --- |
+| `sg-muj7qsed-eabc677d` | `APPROVED` | 父亲从窗户进出，逐字抄写副本，原件留下，门始终关闭，午夜前取得副本。 | [FINALIZED](https://explorer-studio.genlayer.com/tx/0x273f34edfbdef9ccea0948bd12a55ef9fd0b6598c8652bb5798a553902903565) |
+| `sg-muj7nfoi-644056c6` | `NEEDS_MORE_INFO` | 说明了副本与时间，但没有交代原件是否留在塔内、门是否一直关闭。 | [FINALIZED](https://explorer-studio.genlayer.com/tx/0x341b94f13d8ac3a9ae5bafba9ebf54938ab302c618486c32eae67e915de61ca5) |
+| `sg-muj7x9ev-852c8d5e` | `REJECTED` | 把交付推到第二天的午夜前，错过规则要求的当晚午夜。 | [FINALIZED](https://explorer-studio.genlayer.com/tx/0x70ab3430f94ad58dd7f3b1426375923c26771ef2787a76e80e4e37da1d31edd6) |
+| `sg-muj7fo48-4dfa2001` | `NEEDS_MORE_INFO` | 提到复印和窗口，但没有把关键约束说完整。 | [FINALIZED](https://explorer-studio.genlayer.com/tx/0x9b013984cb55ac4bd1d67cc6f96db7e9d7e625bfc72032dd454b7ecdf7ad6fb0) |
+| `sg-muj70jsp-79e2debe` | `APPROVED` | 原件留塔内、门关闭，午夜前从窗口递出完整逐字副本。 | [FINALIZED](https://explorer-studio.genlayer.com/tx/0x4093e5cdc83ee5558ae571df33252ede7aea9207b97065a3c559ee53ec859559) |
 
 这五个 ID 是玩家网页产生的独立记录，不等同于上方在 Studio 中提交的 `try-001` 至 `try-003`。网页在钱包确认后等待交易最终确定，再读取并展示合约保存的结论；刷新后可从本机的“我的提交记录”找回该次尝试。
 
