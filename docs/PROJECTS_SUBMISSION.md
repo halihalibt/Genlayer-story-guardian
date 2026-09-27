@@ -3,7 +3,8 @@
 ## 可提交的链接
 
 - 公开试玩：https://story-guardian-clocktower.zsf197176.chatgpt.site
-- 公开代码：https://github.com/halihalibt/Genlayer-story-guardian
+- 公开代码：https://github.com/halihalibt/Genlayer-story-guardian/tree/projects-story-guardian
+- 原 Intelligent Contracts 提交快照：https://github.com/halihalibt/Genlayer-story-guardian/tree/intelligent-contracts-submission
 - 已部署合约：https://explorer-studio.genlayer.com/address/0x66772109f272c69498168503A5868b6Ecf8fEd08
 - 规则 ID：`clocktower-v1`
 - 已有三条链上判定：`try-001`（APPROVED）、`try-002`（REJECTED）、`try-003`（REJECTED）

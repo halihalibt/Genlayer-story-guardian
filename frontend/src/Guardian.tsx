@@ -37,7 +37,7 @@ const words = {
     reason: "判定理由（链上原文）", yourPlan: "你提交的方案", again: "再试一个办法", records: "已经发生的尝试", recordsHelp: "以下记录直接从合约读取，无需钱包。", refresh: "刷新记录", failRead: "读取失败", missing: "暂无链上结果",
     raw: "查看链上规则原文", own: "我的提交记录", repo: "合约源代码", finalized: "判定来自合约最终状态",
     notice: "此演示运行在 GenLayer Studionet 测试网。交易可能需要测试网代币，无需购买真实资产；确认前请查看钱包显示的费用。",
-    invalid: "请填写 10–1200 个字符的具体方案。", noWallet: "未检测到浏览器钱包。请用安装了 MetaMask 等 EVM 钱包的浏览器打开。", walletFail: "钱包请求已取消或失败，请检查钱包与网络。",
+    invalid: "请填写 10–1200 个字符的具体方案。", noWallet: "未检测到浏览器钱包。请用安装了 MetaMask 等 EVM 钱包的浏览器打开。", walletFail: "钱包连接或提交失败，请检查钱包与网络。", walletRejected: "你取消了钱包请求；如需提交，请重试并在钱包中确认。", walletBusy: "钱包中已有待处理的请求，请先打开钱包完成或关闭它。", networkFail: "钱包未切换到 GenLayer Studionet（链 ID 61999）。请检查钱包网络后重试。",
     writeFail: "交易最终确认了，但合约执行未成功；请查看交易详情。", pendingFail: "暂时无法确认最终结果。交易编号已保存，请稍后查询；不要重复提交。", empty: "交易已确认，但暂时读不到判定。请稍后查询。",
   },
   en: {
@@ -55,7 +55,7 @@ const words = {
     reason: "Reason (onchain original)", yourPlan: "Your proposal", again: "Try another idea", records: "Previous attempts", recordsHelp: "These records come directly from the contract. No wallet required.", refresh: "Refresh records", failRead: "Read failed", missing: "No onchain result yet",
     raw: "Read original rules", own: "My submissions", repo: "Contract source", finalized: "Decision from finalized contract state",
     notice: "This demo runs on GenLayer Studionet. Transactions may need testnet tokens; no real asset purchase is needed. Review your wallet's fee before confirming.",
-    invalid: "Describe a concrete solution in 10–1200 characters.", noWallet: "No browser wallet found. Open this page in a browser with an EVM wallet such as MetaMask.", walletFail: "The wallet request was canceled or failed. Check your wallet and network.",
+    invalid: "Describe a concrete solution in 10–1200 characters.", noWallet: "No browser wallet found. Open this page in a browser with an EVM wallet such as MetaMask.", walletFail: "Wallet connection or submission failed. Check your wallet and network.", walletRejected: "You canceled the wallet request. Try again and approve it in your wallet.", walletBusy: "A wallet request is already pending. Open your wallet and complete or dismiss it first.", networkFail: "The wallet did not switch to GenLayer Studionet (chain ID 61999). Check its network and try again.",
     writeFail: "The transaction finalized, but the contract did not succeed. Check its details.", pendingFail: "The final result is not available yet. Your transaction ID is saved; check later and do not resubmit.", empty: "Transaction is final, but its decision is not readable yet. Check later.",
   },
 };
@@ -72,7 +72,48 @@ async function getPolicy() {
 async function getDecision(id: string) {
   return decode<Decision>(await readClient.readContract({ address: ADDRESS, functionName: "get_result", args: [id], transactionHashVariant: TransactionHashVariant.LATEST_FINAL }));
 }
-function errorText(cause: unknown) { return cause instanceof Error ? cause.message : String(cause); }
+function errorCode(cause: unknown, depth = 0): number | undefined {
+  if (!cause || typeof cause !== "object" || depth > 4) return undefined;
+  const details = cause as Record<string, unknown>;
+  const code = typeof details.code === "number" || typeof details.code === "string" ? Number(details.code) : NaN;
+  if (Number.isFinite(code)) return code;
+  return errorCode(details.cause ?? details.data ?? details.originalError, depth + 1);
+}
+function errorMessage(cause: unknown, depth = 0): string | undefined {
+  if (typeof cause === "string") return cause;
+  if (!cause || typeof cause !== "object" || depth > 4) return undefined;
+  const details = cause as Record<string, unknown>;
+  for (const key of ["shortMessage", "message", "details", "reason"] as const) {
+    if (typeof details[key] === "string" && details[key].trim()) return details[key];
+  }
+  return errorMessage(details.cause ?? details.data ?? details.originalError, depth + 1);
+}
+function errorText(cause: unknown, t: typeof words.zh) {
+  const code = errorCode(cause);
+  if (code === 4001) return t.walletRejected;
+  if (code === -32002) return t.walletBusy;
+  const message = errorMessage(cause);
+  if (message && message !== "[object Object]") return message.slice(0, 400);
+  return code === undefined ? t.walletFail : `${t.walletFail} (code ${code})`;
+}
+async function switchToStudionet(provider: Provider, networkFail: string) {
+  const chainId = `0x${studionet.id.toString(16)}`;
+  const current = await provider.request({ method: "eth_chainId" });
+  if (typeof current === "string" && current.toLowerCase() === chainId) return;
+  try {
+    await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId }] });
+  } catch (cause) {
+    if (errorCode(cause) !== 4902) throw cause;
+    await provider.request({ method: "wallet_addEthereumChain", params: [{
+      chainId, chainName: studionet.name, rpcUrls: studionet.rpcUrls.default.http,
+      nativeCurrency: studionet.nativeCurrency,
+      ...(studionet.blockExplorers?.default?.url ? { blockExplorerUrls: [studionet.blockExplorers.default.url] } : {}),
+    }] });
+    await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId }] });
+  }
+  const selected = await provider.request({ method: "eth_chainId" });
+  if (typeof selected !== "string" || selected.toLowerCase() !== chainId) throw new Error(networkFail);
+}
 function storedPending(): Pending | null {
   try {
     const item = JSON.parse(localStorage.getItem(PENDING_KEY) || "null") as Pending | null;
@@ -167,11 +208,11 @@ export default function Guardian() {
 
   async function connectWallet() {
     if (!window.ethereum) throw new Error(t.noWallet);
-    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+    const provider = window.ethereum;
+    const accounts = await provider.request({ method: "eth_requestAccounts" });
     if (!Array.isArray(accounts) || typeof accounts[0] !== "string") throw new Error(t.walletFail);
     const address = accounts[0] as `0x${string}`;
-    const client = createClient({ chain: studionet, account: address, provider: window.ethereum as never });
-    await client.connect("studionet");
+    await switchToStudionet(provider, t.networkFail);
     setWallet(address);
     return address;
   }
@@ -195,7 +236,7 @@ export default function Guardian() {
       setPending(null);
       localStorage.removeItem(PENDING_KEY);
     } catch (cause) {
-      setError(errorText(cause) === t.empty ? t.empty : t.pendingFail);
+      setError(errorText(cause, t) === t.empty ? t.empty : t.pendingFail);
     } finally { setStage("idle"); }
   }
 
@@ -235,7 +276,7 @@ export default function Guardian() {
       setPending(null);
       localStorage.removeItem(PENDING_KEY);
     } catch (cause) {
-      setError(hash ? t.pendingFail : errorText(cause));
+      setError(hash ? t.pendingFail : errorText(cause, t));
     } finally { setStage("idle"); }
   }
 
@@ -245,7 +286,7 @@ export default function Guardian() {
   return <div className="site-shell">
     <header className="site-header">
       <div className="brand"><span className="brand-mark" aria-hidden="true">RG<span>✦</span></span><span>STORY GUARDIAN</span></div>
-      <div className="header-actions"><span className="network"><span className="network-dot"/>Studionet · Testnet</span><button type="button" className="lang-button" onClick={() => setLang(lang === "zh" ? "en" : "zh")}>{lang === "zh" ? "EN" : "中文"}</button><button type="button" className="wallet-button" disabled={stage !== "idle"} onClick={() => { setStage("connecting"); setError(""); void connectWallet().catch((cause) => setError(errorText(cause))).finally(() => setStage("idle")); }}><Wallet2 size={17}/>{wallet ? wallet.slice(0, 6) + "…" + wallet.slice(-4) : t.wallet}</button></div>
+      <div className="header-actions"><span className="network"><span className="network-dot"/>Studionet · Testnet</span><button type="button" className="lang-button" onClick={() => setLang(lang === "zh" ? "en" : "zh")}>{lang === "zh" ? "EN" : "中文"}</button><button type="button" className="wallet-button" disabled={stage !== "idle"} onClick={() => { setStage("connecting"); setError(""); void connectWallet().catch((cause) => setError(errorText(cause, t))).finally(() => setStage("idle")); }}><Wallet2 size={17}/>{wallet ? wallet.slice(0, 6) + "…" + wallet.slice(-4) : t.wallet}</button></div>
     </header>
     <main className="main-layout">
       <div className="intro"><div className="eyebrow"><span className="line"/>GENLAYER · INTERACTIVE STORY</div><h1>{t.title}<span className="title-period">.</span></h1><p>{t.subtitle}</p></div>
@@ -274,6 +315,6 @@ export default function Guardian() {
       </section>
       {policy && <details className="raw-policy"><summary>{t.raw}</summary><div><div><strong>Scenario</strong><p>{policy.scenario}</p></div><div><strong>Allowed condition</strong><p>{policy.allow_rule}</p></div><div><strong>Forbidden condition</strong><p>{policy.deny_rule}</p></div></div></details>}
     </main>
-    <footer className="site-footer"><span>STORY GUARDIAN · RULEGATE</span><span>{t.finalized}</span><a href="https://github.com/halihalibt/Genlayer-story-guardian" target="_blank" rel="noopener noreferrer">{t.repo}<ArrowUpRight size={15}/></a></footer>
+    <footer className="site-footer"><span>STORY GUARDIAN · RULEGATE</span><span>{t.finalized}</span><a href="https://github.com/halihalibt/Genlayer-story-guardian/tree/projects-story-guardian" target="_blank" rel="noopener noreferrer">{t.repo}<ArrowUpRight size={15}/></a></footer>
   </div>;
 }

@@ -4,11 +4,13 @@
 
 **[打开可玩的网页](https://story-guardian-clocktower.zsf197176.chatgpt.site)** · [查看链上合约](https://explorer-studio.genlayer.com/address/0x66772109f272c69498168503A5868b6Ecf8fEd08)
 
+本分支记录新的 Projects 网页作品。[Intelligent Contracts 原提交版本](https://github.com/halihalibt/Genlayer-story-guardian/tree/intelligent-contracts-submission) 已单独固定；仓库默认分支保留审核时的合约、测试和说明。
+
 ## 从网页体验
 
 1. 无需钱包即可打开网页，查看从链上读取的规则与三条历史判定。
 2. 在文本框写下 10–1200 字符的具体方案。合约规则为英文，建议先用英文描述。
-3. 通过浏览器 EVM 钱包连接 GenLayer Studionet（chain ID 61999），在钱包里检查并确认测试网交易。
+3. 通过浏览器 EVM 钱包连接 GenLayer Studionet（chain ID 61999），按提示授权账户和切换网络，再在钱包里检查并确认测试网交易。
 4. 等待最终确认。网页通过 `get_result` 读取链上保存的结论和理由；若等待超时，刷新页面后可继续查询原交易，不要重复提交。
 
 这是测试网演示，不涉及购买真实资产。钱包交易可能需要测试网代币；确认交易前请检查钱包显示的费用。钱包密钥只由你自己的钱包管理，网页不托管密钥。
